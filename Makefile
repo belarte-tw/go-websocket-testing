@@ -6,3 +6,11 @@ run-server:
 
 run-client:
 	go run cmd/client/main.go 1323 3 5
+
+build-docker:
+	docker build -t go-websocket-server .
+
+run-docker:
+	docker run -p 1323:1323 go-websocket-server
+
+docker: build-docker run-docker
