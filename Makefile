@@ -1,4 +1,8 @@
-build:
+clean:
+	rm -rf bin/
+
+build: clean
+	mkdir bin
 	go build -o bin ./...
 
 run-server:
