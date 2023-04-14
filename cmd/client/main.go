@@ -30,14 +30,16 @@ func main() {
 
 	for j := 0; j < routines; j++ {
 		go func(r int) {
+			defer wg.Done()
 			c, _, err := websocket.Dial(ctx, url, nil)
 			if err != nil {
-				fmt.Println("Can't dial...")
-				c.Close(websocket.StatusAbnormalClosure, "Something happened...")
+				fmt.Printf("Can't dial ws #%d, err: %s\n", r, err)
+				if c != nil {
+					c.Close(websocket.StatusAbnormalClosure, "Something happened...")
+				}
 				return
 			}
 			defer c.Close(websocket.StatusNormalClosure, "Done!")
-			defer wg.Done()
 
 			for i := 0; i < messages; i++ {
 				msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(r)
