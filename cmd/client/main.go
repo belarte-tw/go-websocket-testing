@@ -29,6 +29,7 @@ func main() {
 	wg.Add(routines)
 
 	for j := 0; j < routines; j++ {
+		time.Sleep(10 * time.Millisecond)
 		go func(r int) {
 			defer wg.Done()
 			c, _, err := websocket.Dial(ctx, url, nil)
