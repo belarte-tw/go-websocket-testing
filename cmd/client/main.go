@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	if len(os.Args) != 4 {
@@ -42,6 +43,17 @@ func main() {
 			}
 			defer c.Close(websocket.StatusNormalClosure, "Done!")
 
+			filename := fmt.Sprintf("test/file%d.txt", r)
+			file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+			if err != nil {
+				fmt.Printf("failed creating file: %s", err)
+				return
+			}
+			defer file.Close()
+
+			datawriter := bufio.NewWriter(file)
+			defer datawriter.Flush()
+
 			for i := 0; i < messages; i++ {
 				msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(r)
 				err = c.Write(ctx, websocket.MessageText, []byte(msg))
@@ -50,8 +62,8 @@ func main() {
 					return
 				}
 
-				if _, _, err := c.Read(ctx); err == nil {
-					//fmt.Printf("[%v] %s\n", typ, string(msg))
+				if _, msg, err := c.Read(ctx); err == nil {
+					_, _ = datawriter.WriteString(string(msg) + "\n")
 				}
 
 				time.Sleep(500 * time.Millisecond)
