@@ -50,8 +50,8 @@ func main() {
 					return
 				}
 
-				if typ, msg, err := c.Read(ctx); err == nil {
-					fmt.Printf("[%v] %s\n", typ, string(msg))
+				if _, _, err := c.Read(ctx); err == nil {
+					//fmt.Printf("[%v] %s\n", typ, string(msg))
 				}
 
 				time.Sleep(500 * time.Millisecond)

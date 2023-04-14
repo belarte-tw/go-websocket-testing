@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -27,18 +26,16 @@ func Echo(ctx context.Context, c *websocket.Conn, l *rate.Limiter) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Received message: %v", typ)
 
 	w, err := c.Writer(ctx, typ)
 	if err != nil {
 		return err
 	}
 
-	n, err := io.Copy(w, r)
+	_, err = io.Copy(w, r)
 	if err != nil {
 		return fmt.Errorf("failed to io.Copy: %w", err)
 	}
-	log.Printf("Read %d bytes", n)
 
 	err = w.Close()
 	return err
