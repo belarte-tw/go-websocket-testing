@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strconv"
 	"sync"
 	"time"
@@ -72,8 +73,8 @@ func run(ctx context.Context, url string, routines, messages int) {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
 
 	if len(os.Args) != 4 {
 		fmt.Println("Command line: ./client ip #goroutines #messages")
