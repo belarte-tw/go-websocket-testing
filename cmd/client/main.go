@@ -35,18 +35,24 @@ func startRoutine(ctx context.Context, url string, routine, messages int) {
 	defer datawriter.Flush()
 
 	for i := 0; i < messages; i++ {
-		msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(routine)
-		err = c.Write(ctx, websocket.MessageText, []byte(msg))
-		if err != nil {
-			fmt.Println("Can't send message: ", msg, " with error: ", err)
+		select {
+		case <-ctx.Done():
+			fmt.Printf("Canceling routine #%d\n", routine)
 			return
-		}
+		default:
+			msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(routine)
+			err = c.Write(ctx, websocket.MessageText, []byte(msg))
+			if err != nil {
+				fmt.Println("Can't send message: ", msg, " with error: ", err)
+				return
+			}
 
-		if _, msg, err := c.Read(ctx); err == nil {
-			_, _ = datawriter.WriteString(string(msg) + "\n")
-		}
+			if _, msg, err := c.Read(ctx); err == nil {
+				_, _ = datawriter.WriteString(string(msg) + "\n")
+			}
 
-		time.Sleep(500 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
+		}
 	}
 }
 
