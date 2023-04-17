@@ -66,7 +66,7 @@ func run(ctx context.Context, url string, routines, messages int) {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	if len(os.Args) != 4 {
