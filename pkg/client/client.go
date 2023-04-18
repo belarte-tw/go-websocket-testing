@@ -39,7 +39,7 @@ func startRoutine(ctx context.Context, url string, routine, messages int) {
 
 	datawriter, err := newWriter(routine)
 	if err != nil {
-		fmt.Printf("failed creating file: %s\n", err)
+		fmt.Println(err)
 		return
 	}
 	defer datawriter.Flush()
