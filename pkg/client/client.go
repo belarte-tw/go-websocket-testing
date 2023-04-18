@@ -37,11 +37,15 @@ func startRoutine(ctx context.Context, url string, routine, messages int) {
 	}
 	defer c.Close(websocket.StatusNormalClosure, "Done!")
 
-	datawriter, err := newWriter(routine)
+	filename := fmt.Sprintf("test/file%d.txt", routine)
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("failed creating file: %s", err)
 		return
 	}
+	defer file.Close()
+
+	datawriter := bufio.NewWriter(file)
 	defer datawriter.Flush()
 
 	for i := 0; i < messages; i++ {
@@ -64,15 +68,4 @@ func startRoutine(ctx context.Context, url string, routine, messages int) {
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
-}
-
-func newWriter(routine int) (*bufio.Writer, error) {
-	filename := fmt.Sprintf("test/file%d.txt", routine)
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed creating file: %s", err)
-	}
-	defer file.Close()
-
-	return bufio.NewWriter(file), nil
 }
