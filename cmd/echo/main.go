@@ -23,7 +23,7 @@ func hello(ctx echo.Context) error {
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
 	atomic.AddUint64(&connections, 1)
-	log.Print("Connections: ", connections)
+	log.Print("Connections: ", connections-disconnections)
 
 	l := rate.NewLimiter(rate.Every(time.Millisecond*100), 10)
 	for {
