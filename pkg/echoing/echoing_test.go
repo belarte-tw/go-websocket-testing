@@ -13,44 +13,70 @@ import (
 	"nhooyr.io/websocket"
 )
 
-type mockReader struct{}
+type mockReader struct {
+	msg []byte
+}
 
-func (m mockReader) Read(p []byte) (int, error) { return 0, io.EOF }
+func (m mockReader) Read(b []byte) (int, error) {
+	copy(b, m.msg)
+	b = b[:len(m.msg)]
+	return len(b), io.EOF
+}
 
 type mockWriteCloser struct {
 	msg []byte
 	err error
 }
 
-func (m mockWriteCloser) Close() error                      { return m.err }
-func (m mockWriteCloser) Write(b []byte) (n int, err error) { return 0, nil }
+func (m *mockWriteCloser) Close() error { return m.err }
+func (m *mockWriteCloser) Write(b []byte) (n int, err error) {
+	m.msg = append([]byte(nil), b...)
+	return len(b), nil
+}
 
 type mockConn struct {
+	reader mockReader
 	writer mockWriteCloser
 }
 
-func (c mockConn) Reader(context.Context) (websocket.MessageType, io.Reader, error) {
-	return websocket.MessageBinary, &mockReader{}, nil
+func (c *mockConn) Reader(context.Context) (websocket.MessageType, io.Reader, error) {
+	return websocket.MessageText, &c.reader, nil
 }
 
-func (c mockConn) Writer(context.Context, websocket.MessageType) (io.WriteCloser, error) {
+func (c *mockConn) Writer(context.Context, websocket.MessageType) (io.WriteCloser, error) {
 	return &c.writer, nil
 }
 
 var l = rate.NewLimiter(rate.Every(time.Millisecond*100), 10)
 
 func TestEchoing(t *testing.T) {
-	w := mockWriteCloser{}
-	m := &mockConn{writer: w}
-	err := echoing.Echo(context.TODO(), m, l)
-	if err != nil {
-		t.Fatal("Cannot echo")
+	tests := map[string]struct {
+		msg []byte
+	}{
+		"empty message":            {msg: []byte("")},
+		"simple message":           {msg: []byte("hello world")},
+		"multi line message":       {msg: []byte("hello world\nI am a developer!")},
+		"message with white space": {msg: []byte("  hello world  ")},
 	}
 
-	got := string(w.msg)
-	want := ""
-	if got != want {
-		t.Errorf("got '%s' but wanted '%s'", got, want)
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			m := &mockConn{
+				writer: mockWriteCloser{},
+				reader: mockReader{msg: test.msg},
+			}
+
+			err := echoing.Echo(context.TODO(), m, l)
+			if err != nil {
+				t.Fatal("Cannot echo")
+			}
+
+			got := string(m.writer.msg)
+			want := string(test.msg)
+			if got != want {
+				t.Errorf("got '%v' but wanted '%v'", got, want)
+			}
+		})
 	}
 }
 
