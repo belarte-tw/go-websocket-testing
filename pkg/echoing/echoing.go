@@ -10,10 +10,15 @@ import (
 	"nhooyr.io/websocket"
 )
 
+type conn interface {
+	Reader(context.Context) (websocket.MessageType, io.Reader, error)
+	Writer(context.Context, websocket.MessageType) (io.WriteCloser, error)
+}
+
 // echo reads from the WebSocket connection and then writes
 // the received message back to it.
 // The entire function has 10s to complete.
-func Echo(ctx context.Context, c *websocket.Conn, l *rate.Limiter) error {
+func Echo(ctx context.Context, c conn, l *rate.Limiter) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 

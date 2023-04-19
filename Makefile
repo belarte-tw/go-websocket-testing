@@ -5,6 +5,9 @@ build: clean
 	mkdir bin
 	go build -o bin ./...
 
+test:
+	go test -v ./...
+
 run-server:
 	go run cmd/echo/main.go
 
