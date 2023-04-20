@@ -17,3 +17,4 @@ bin/
 
 # Test files
 test/
+**/mock_*

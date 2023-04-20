@@ -8,6 +8,8 @@ import (
 	"go-socket/pkg/echoing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"nhooyr.io/websocket"
 )
 
 func TestIfyEchoing(t *testing.T) {
@@ -22,15 +24,15 @@ func TestIfyEchoing(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			m := &mockConn{
-				writer: mockWriteCloser{},
-				reader: mockReader{msg: test.msg},
-			}
+			mockConn := echoing.NewMockconn(t)
+			wc := &mockWriteCloser{}
+			mockConn.EXPECT().Reader(mock.Anything).Return(websocket.MessageText, &mockReader{msg: test.msg}, nil)
+			mockConn.EXPECT().Writer(mock.Anything, websocket.MessageText).Return(wc, nil)
 
-			err := echoing.Echo(context.TODO(), m, l)
+			err := echoing.Echo(context.TODO(), mockConn, l)
 
 			assert.Nil(t, err, "Cannot echo")
-			assert.Equal(t, string(test.msg), string(m.writer.msg), "Message should be equal")
+			assert.Equal(t, string(test.msg), string(wc.msg), "Message should be equal")
 		})
 	}
 }

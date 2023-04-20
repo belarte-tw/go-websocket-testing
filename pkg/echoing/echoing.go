@@ -10,6 +10,7 @@ import (
 	"nhooyr.io/websocket"
 )
 
+//go:generate mockery --name conn
 type conn interface {
 	Reader(context.Context) (websocket.MessageType, io.Reader, error)
 	Writer(context.Context, websocket.MessageType) (io.WriteCloser, error)
