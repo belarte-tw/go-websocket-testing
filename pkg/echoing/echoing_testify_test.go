@@ -26,8 +26,12 @@ func TestIfyEchoing(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			mockConn := echoing.NewMockconn(t)
 			wc := &mockWriteCloser{}
-			mockConn.EXPECT().Reader(mock.Anything).Return(websocket.MessageText, &mockReader{msg: test.msg}, nil)
-			mockConn.EXPECT().Writer(mock.Anything, websocket.MessageText).Return(wc, nil)
+			mockConn.EXPECT().
+				Reader(mock.Anything).
+				Return(websocket.MessageText, &mockReader{msg: test.msg}, nil)
+			mockConn.EXPECT().
+				Writer(mock.Anything, websocket.MessageText).
+				Return(wc, nil)
 
 			err := echoing.Echo(context.TODO(), mockConn, l)
 
@@ -39,11 +43,15 @@ func TestIfyEchoing(t *testing.T) {
 
 func TestIfyEchoingFailToCloseWriter(t *testing.T) {
 	want := "something bad happened"
-	m := &mockConn{
-		writer: mockWriteCloser{err: errors.New(want)},
-	}
+	mockConn := echoing.NewMockconn(t)
+	mockConn.EXPECT().
+		Writer(mock.Anything, websocket.MessageText).
+		Return(&mockWriteCloser{err: errors.New(want)}, nil)
+	mockConn.EXPECT().
+		Reader(mock.Anything).
+		Return(websocket.MessageText, &mockReader{}, nil)
 
-	err := echoing.Echo(context.TODO(), m, l)
+	err := echoing.Echo(context.TODO(), mockConn, l)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, want, err.Error(), "Wrong error message")
