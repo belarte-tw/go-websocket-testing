@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/time v0.3.0
 	nhooyr.io/websocket v1.8.7
 )
 
@@ -24,5 +23,6 @@ require (
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
