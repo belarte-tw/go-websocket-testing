@@ -9,10 +9,10 @@ test-generate:
 	go generate ./...
 
 test-unit:
-	go test -v ./...
+	go test ./...
 
 test-integration:
-	go test -v ./... --tags=integration
+	go test ./... --tags=integration
 
 test: test-generate test-unit test-integration
 
