@@ -53,6 +53,6 @@ func TestIfyEchoingFailToCloseWriter(t *testing.T) {
 
 	err := echoing.Echo(context.TODO(), mockConn, l)
 
-	assert.NotNil(t, err)
-	assert.Equal(t, want, err.Error(), "Wrong error message")
+	assert.NotNil(t, err, "Should return an error but was nil")
+	assert.Equal(t, want, err.Error(), "got '%s' but wanted '%s'", err.Error(), want)
 }
