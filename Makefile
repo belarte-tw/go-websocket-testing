@@ -5,9 +5,16 @@ build: clean
 	mkdir bin
 	go build -o bin ./...
 
-test:
+test-generate:
 	go generate ./...
+
+test-unit:
 	go test -v ./...
+
+test-integration:
+	go test -v ./... --tags=integration
+
+test: test-generate test-unit test-integration
 
 run-server:
 	go run cmd/echo/main.go
@@ -15,10 +22,10 @@ run-server:
 run-client:
 	go run cmd/client/main.go 1323 3 5
 
-build-docker:
+docker-build:
 	docker build -t go-websocket-server .
 
-run-docker:
+docker-run:
 	docker run -p 1323:1323 go-websocket-server
 
-docker: build-docker run-docker
+docker: docker-build docker-run
