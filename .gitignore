@@ -16,5 +16,5 @@ bin/
 # vendor/
 
 # Test files
-test/
+output/
 **/mock_*

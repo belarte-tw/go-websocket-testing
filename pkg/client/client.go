@@ -37,10 +37,10 @@ func startRoutine(ctx context.Context, url string, routine, messages int) {
 	}
 	defer c.Close(websocket.StatusNormalClosure, "Done!")
 
-	filename := fmt.Sprintf("test/file%d.txt", routine)
+	filename := fmt.Sprintf("output/file%d.txt", routine)
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		fmt.Printf("failed creating file: %s", err)
+		fmt.Printf("failed creating file: %s\n", err)
 		return
 	}
 	defer file.Close()
