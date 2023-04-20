@@ -3,10 +3,8 @@ package echoing
 import (
 	"log"
 	"sync/atomic"
-	"time"
 
 	"github.com/labstack/echo/v4"
-	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 )
 
@@ -23,9 +21,8 @@ func Handler(ctx echo.Context) error {
 	atomic.AddUint64(&connections, 1)
 	log.Print("Connections: ", connections-disconnections)
 
-	l := rate.NewLimiter(rate.Every(time.Millisecond*100), 10)
 	for {
-		err = Echo(ctx.Request().Context(), c, l)
+		err = Echo(ctx.Request().Context(), c)
 		if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
 			atomic.AddUint64(&disconnections, 1)
 			log.Printf("Status: connections=%d, disconnections=%d", connections-disconnections, disconnections)

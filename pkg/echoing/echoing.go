@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 )
 
@@ -19,14 +18,9 @@ type conn interface {
 // echo reads from the WebSocket connection and then writes
 // the received message back to it.
 // The entire function has 10s to complete.
-func Echo(ctx context.Context, c conn, l *rate.Limiter) error {
+func Echo(ctx context.Context, c conn) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
-
-	err := l.Wait(ctx)
-	if err != nil {
-		return err
-	}
 
 	typ, r, err := c.Reader(ctx)
 	if err != nil {

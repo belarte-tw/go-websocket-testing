@@ -5,11 +5,9 @@ import (
 	"errors"
 	"io"
 	"testing"
-	"time"
 
 	"go-socket/pkg/echoing"
 
-	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 )
 
@@ -47,8 +45,6 @@ func (c *mockConn) Writer(context.Context, websocket.MessageType) (io.WriteClose
 	return &c.writer, nil
 }
 
-var l = rate.NewLimiter(rate.Every(time.Millisecond*100), 10)
-
 func TestEchoing(t *testing.T) {
 	tests := map[string]struct {
 		msg []byte
@@ -66,7 +62,7 @@ func TestEchoing(t *testing.T) {
 				reader: mockReader{msg: test.msg},
 			}
 
-			err := echoing.Echo(context.TODO(), m, l)
+			err := echoing.Echo(context.TODO(), m)
 			if err != nil {
 				t.Fatal("Cannot echo")
 			}
@@ -86,7 +82,7 @@ func TestEchoingFailToCloseWriter(t *testing.T) {
 		writer: mockWriteCloser{err: errors.New(want)},
 	}
 
-	err := echoing.Echo(context.TODO(), m, l)
+	err := echoing.Echo(context.TODO(), m)
 	if err == nil {
 		t.Fatal("Should return an error but was nil")
 	}

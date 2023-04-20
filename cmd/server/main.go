@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 
 	"go-socket/pkg/echoing"
@@ -31,9 +30,8 @@ func (s echoServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	l := rate.NewLimiter(rate.Every(time.Millisecond*100), 10)
 	for {
-		err = echoing.Echo(r.Context(), c, l)
+		err = echoing.Echo(r.Context(), c)
 		if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
 			return
 		}

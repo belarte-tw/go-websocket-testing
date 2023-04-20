@@ -33,7 +33,7 @@ func TestIfyEchoing(t *testing.T) {
 				Writer(mock.Anything, websocket.MessageText).
 				Return(wc, nil)
 
-			err := echoing.Echo(context.TODO(), mockConn, l)
+			err := echoing.Echo(context.TODO(), mockConn)
 
 			assert.Nil(t, err, "Cannot echo")
 			assert.Equal(t, string(test.msg), string(wc.msg), "Message should be equal")
@@ -51,7 +51,7 @@ func TestIfyEchoingFailToCloseWriter(t *testing.T) {
 		Reader(mock.Anything).
 		Return(websocket.MessageText, &mockReader{}, nil)
 
-	err := echoing.Echo(context.TODO(), mockConn, l)
+	err := echoing.Echo(context.TODO(), mockConn)
 
 	assert.NotNil(t, err, "Should return an error but was nil")
 	assert.Equal(t, want, err.Error(), "got '%s' but wanted '%s'", err.Error(), want)
