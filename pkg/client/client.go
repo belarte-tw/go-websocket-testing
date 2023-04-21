@@ -27,6 +27,7 @@ func Run(ctx context.Context, url string, routines, messages int) {
 				return
 			}
 			routine.start(messages)
+			routine.close()
 		}(j)
 	}
 
@@ -58,9 +59,6 @@ func newRoutine(ctx context.Context, url string, id int) (*routine, error) {
 }
 
 func (r *routine) start(messages int) {
-	defer r.conn.Close(websocket.StatusNormalClosure, "Done!")
-	defer r.datawriter.Close()
-
 	for i := 0; i < messages; i++ {
 		select {
 		case <-r.ctx.Done():
@@ -81,6 +79,11 @@ func (r *routine) start(messages int) {
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
+}
+
+func (r *routine) close() {
+	r.datawriter.Close()
+	r.conn.Close(websocket.StatusNormalClosure, "Done!")
 }
 
 type fileWriter struct {
