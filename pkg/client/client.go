@@ -18,48 +18,64 @@ func Run(ctx context.Context, url string, routines, messages int) {
 
 	for j := 0; j < routines; j++ {
 		time.Sleep(10 * time.Millisecond)
+
 		go func(r int) {
 			defer wg.Done()
-			startRoutine(ctx, url, r, messages)
+			routine, err := newRoutine(ctx, url, r)
+			if err != nil {
+				fmt.Printf("Failed to create routine #%d: %s", r, err.Error())
+				return
+			}
+			routine.start(messages)
 		}(j)
 	}
 
 	wg.Wait()
 }
 
-func startRoutine(ctx context.Context, url string, routine, messages int) {
+type routine struct {
+	ctx        context.Context
+	conn       *websocket.Conn
+	datawriter io.WriteCloser
+	id         int
+}
+
+func newRoutine(ctx context.Context, url string, id int) (*routine, error) {
 	c, _, err := websocket.Dial(ctx, url, nil)
 	if err != nil {
-		fmt.Printf("Can't dial ws #%d, err: %s\n", routine, err)
 		if c != nil {
 			c.Close(websocket.StatusAbnormalClosure, "Something happened...")
 		}
-		return
+		return nil, fmt.Errorf("can't dial ws #%d: %w", id, err)
 	}
-	defer c.Close(websocket.StatusNormalClosure, "Done!")
 
-	datawriter, err := newFileWriter(routine)
+	datawriter, err := newFileWriter(id)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return nil, fmt.Errorf("cannot create file writer: %w", err)
 	}
-	defer datawriter.Close()
+
+	return &routine{ctx: ctx, conn: c, datawriter: datawriter, id: id}, nil
+}
+
+func (r *routine) start(messages int) {
+	defer r.conn.Close(websocket.StatusNormalClosure, "Done!")
+	defer r.datawriter.Close()
 
 	for i := 0; i < messages; i++ {
 		select {
-		case <-ctx.Done():
-			fmt.Printf("Canceling routine #%d\n", routine)
+		case <-r.ctx.Done():
+			fmt.Printf("Canceling routine #%d\n", r.id)
 			return
 		default:
-			msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(routine)
-			err = c.Write(ctx, websocket.MessageText, []byte(msg))
+			msg := "Hello " + fmt.Sprint(i) + " from goroutine #" + fmt.Sprint(r.id)
+			err := r.conn.Write(r.ctx, websocket.MessageText, []byte(msg))
 			if err != nil {
 				fmt.Println("Can't send message: ", msg, " with error: ", err)
 				return
 			}
 
-			if _, msg, err := c.Read(ctx); err == nil {
-				_, _ = datawriter.Write(msg)
+			if _, msg, err := r.conn.Read(r.ctx); err == nil {
+				_, _ = r.datawriter.Write(msg)
 			}
 
 			time.Sleep(500 * time.Millisecond)
