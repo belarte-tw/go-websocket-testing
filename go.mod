@@ -1,4 +1,4 @@
-module go-socket
+module go-websocket-testing
 
 go 1.20
 

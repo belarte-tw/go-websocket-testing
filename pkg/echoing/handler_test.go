@@ -4,7 +4,7 @@ package echoing_test
 
 import (
 	"context"
-	"go-socket/pkg/echoing"
+	"go-websocket-testing/pkg/echoing"
 	"testing"
 	"time"
 

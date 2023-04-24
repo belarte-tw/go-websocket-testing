@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"go-socket/pkg/echoing"
+	"go-websocket-testing/pkg/echoing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

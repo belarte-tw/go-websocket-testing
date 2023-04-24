@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 
-	"go-socket/pkg/client"
+	"go-websocket-testing/pkg/client"
 )
 
 func main() {

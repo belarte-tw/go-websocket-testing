@@ -11,7 +11,7 @@ import (
 
 	"nhooyr.io/websocket"
 
-	"go-socket/pkg/echoing"
+	"go-websocket-testing/pkg/echoing"
 )
 
 // echoServer is the WebSocket echo server implementation.

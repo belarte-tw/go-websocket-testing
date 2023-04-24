@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-socket/pkg/echoing"
+	"go-websocket-testing/pkg/echoing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

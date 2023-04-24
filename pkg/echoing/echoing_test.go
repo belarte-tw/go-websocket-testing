@@ -6,7 +6,7 @@ import (
 	"io"
 	"testing"
 
-	"go-socket/pkg/echoing"
+	"go-websocket-testing/pkg/echoing"
 
 	"nhooyr.io/websocket"
 )
