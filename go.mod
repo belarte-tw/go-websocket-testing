@@ -1,4 +1,4 @@
-module github.com/belarte-tw/go-websocket-testing
+module go-websocket-testing
 
 go 1.20
 
