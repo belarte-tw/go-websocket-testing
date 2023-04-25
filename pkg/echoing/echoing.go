@@ -3,7 +3,6 @@ package echoing
 import (
 	"context"
 	"fmt"
-	"io"
 	"time"
 
 	"nhooyr.io/websocket"
@@ -11,8 +10,8 @@ import (
 
 //go:generate mockery --name conn
 type conn interface {
-	Reader(context.Context) (websocket.MessageType, io.Reader, error)
-	Writer(context.Context, websocket.MessageType) (io.WriteCloser, error)
+	Read(context.Context) (websocket.MessageType, []byte, error)
+	Write(context.Context, websocket.MessageType, []byte) error
 }
 
 // echo reads from the WebSocket connection and then writes
@@ -22,21 +21,15 @@ func Echo(ctx context.Context, c conn) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	typ, r, err := c.Reader(ctx)
+	typ, msg, err := c.Read(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("reading from ws: %w", err)
 	}
 
-	w, err := c.Writer(ctx, typ)
+	err = c.Write(ctx, typ, msg)
 	if err != nil {
-		return err
+		return fmt.Errorf("writing to ws: %w", err)
 	}
 
-	_, err = io.Copy(w, r)
-	if err != nil {
-		return fmt.Errorf("failed to io.Copy: %w", err)
-	}
-
-	err = w.Close()
-	return err
+	return nil
 }

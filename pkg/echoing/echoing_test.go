@@ -3,46 +3,25 @@ package echoing_test
 import (
 	"context"
 	"errors"
-	"io"
-	"testing"
-
 	"go-websocket-testing/pkg/echoing"
+	"testing"
 
 	"nhooyr.io/websocket"
 )
 
-type mockReader struct {
-	msg []byte
-}
-
-func (m mockReader) Read(b []byte) (int, error) {
-	copy(b, m.msg)
-	b = b[:len(m.msg)]
-	return len(b), io.EOF
-}
-
-type mockWriteCloser struct {
-	msg []byte
-	err error
-}
-
-func (m *mockWriteCloser) Close() error { return m.err }
-func (m *mockWriteCloser) Write(b []byte) (n int, err error) {
-	m.msg = append([]byte(nil), b...)
-	return len(b), nil
-}
-
 type mockConn struct {
-	reader mockReader
-	writer mockWriteCloser
+	input      []byte
+	output     []byte
+	writeError error
 }
 
-func (c *mockConn) Reader(context.Context) (websocket.MessageType, io.Reader, error) {
-	return websocket.MessageText, &c.reader, nil
+func (c *mockConn) Read(context.Context) (websocket.MessageType, []byte, error) {
+	return websocket.MessageText, c.input, nil
 }
 
-func (c *mockConn) Writer(context.Context, websocket.MessageType) (io.WriteCloser, error) {
-	return &c.writer, nil
+func (c *mockConn) Write(ctx context.Context, t websocket.MessageType, b []byte) error {
+	c.output = append([]byte(nil), b...)
+	return c.writeError
 }
 
 func TestEchoing(t *testing.T) {
@@ -58,8 +37,7 @@ func TestEchoing(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			m := &mockConn{
-				writer: mockWriteCloser{},
-				reader: mockReader{msg: test.msg},
+				input: test.msg,
 			}
 
 			err := echoing.Echo(context.TODO(), m)
@@ -67,7 +45,7 @@ func TestEchoing(t *testing.T) {
 				t.Fatal("Cannot echo")
 			}
 
-			got := string(m.writer.msg)
+			got := string(m.output)
 			want := string(test.msg)
 			if got != want {
 				t.Errorf("got '%v' but wanted '%v'", got, want)
@@ -76,10 +54,10 @@ func TestEchoing(t *testing.T) {
 	}
 }
 
-func TestEchoingFailToCloseWriter(t *testing.T) {
-	want := "something bad happened"
+func TestEchoingFailToWrite(t *testing.T) {
+	want := errors.New("something bad happened")
 	m := &mockConn{
-		writer: mockWriteCloser{err: errors.New(want)},
+		writeError: want,
 	}
 
 	err := echoing.Echo(context.TODO(), m)
@@ -87,8 +65,7 @@ func TestEchoingFailToCloseWriter(t *testing.T) {
 		t.Fatal("Should return an error but was nil")
 	}
 
-	got := err.Error()
-	if got != want {
-		t.Errorf("got '%s' but wanted '%s'", got, want)
+	if !errors.Is(err, want) {
+		t.Errorf("got '%s' but wanted '%s'", err, want)
 	}
 }

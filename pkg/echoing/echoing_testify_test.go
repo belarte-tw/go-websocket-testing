@@ -25,34 +25,32 @@ func TestIfyEchoing(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			mockConn := echoing.NewMockconn(t)
-			wc := &mockWriteCloser{}
 			mockConn.EXPECT().
-				Reader(mock.Anything).
-				Return(websocket.MessageText, &mockReader{msg: test.msg}, nil)
+				Read(mock.Anything).
+				Return(websocket.MessageText, test.msg, nil)
 			mockConn.EXPECT().
-				Writer(mock.Anything, websocket.MessageText).
-				Return(wc, nil)
+				Write(mock.Anything, websocket.MessageText, test.msg).
+				Return(nil)
 
 			err := echoing.Echo(context.TODO(), mockConn)
 
 			assert.Nil(t, err, "Cannot echo")
-			assert.Equal(t, string(test.msg), string(wc.msg), "Message should be equal")
 		})
 	}
 }
 
-func TestIfyEchoingFailToCloseWriter(t *testing.T) {
+func TestIfyEchoingFailToWrite(t *testing.T) {
 	want := "something bad happened"
 	mockConn := echoing.NewMockconn(t)
 	mockConn.EXPECT().
-		Writer(mock.Anything, websocket.MessageText).
-		Return(&mockWriteCloser{err: errors.New(want)}, nil)
+		Write(mock.Anything, websocket.MessageText, mock.Anything).
+		Return(errors.New(want))
 	mockConn.EXPECT().
-		Reader(mock.Anything).
-		Return(websocket.MessageText, &mockReader{}, nil)
+		Read(mock.Anything).
+		Return(websocket.MessageText, []byte(""), nil)
 
 	err := echoing.Echo(context.TODO(), mockConn)
 
-	assert.NotNil(t, err, "Should return an error but was nil")
-	assert.Equal(t, want, err.Error(), "got '%s' but wanted '%s'", err.Error(), want)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), want)
 }
