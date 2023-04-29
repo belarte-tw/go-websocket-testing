@@ -1,3 +1,5 @@
+TEST_FOLDERS = $(shell go list ./... | grep -v cmd)
+
 clean:
 	rm -rf bin/
 
@@ -9,10 +11,10 @@ test-generate:
 	go generate ./...
 
 test-unit:
-	go test ./...
+	go test $(TEST_FOLDERS)
 
 test-integration:
-	go test ./... --tags=integration
+	go test $(TEST_FOLDERS) --tags=integration
 
 test: test-generate test-unit test-integration
 
