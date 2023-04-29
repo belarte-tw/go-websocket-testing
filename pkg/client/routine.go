@@ -20,6 +20,7 @@ type routine struct {
 	ctx        context.Context
 	conn       conn
 	datawriter io.WriteCloser
+	interval   time.Duration
 	id         int
 }
 
@@ -37,7 +38,13 @@ func newRoutine(ctx context.Context, url string, id int) (*routine, error) {
 		return nil, fmt.Errorf("cannot create file writer: %w", err)
 	}
 
-	return &routine{ctx: ctx, conn: c, datawriter: datawriter, id: id}, nil
+	return &routine{
+		ctx:        ctx,
+		conn:       c,
+		datawriter: datawriter,
+		id:         id,
+		interval:   500 * time.Millisecond,
+	}, nil
 }
 
 func (r *routine) start(messages int) {
@@ -58,7 +65,7 @@ func (r *routine) start(messages int) {
 				_, _ = r.datawriter.Write(msg)
 			}
 
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(r.interval)
 		}
 	}
 }
