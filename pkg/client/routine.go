@@ -9,9 +9,16 @@ import (
 	"nhooyr.io/websocket"
 )
 
+//go:generate mockery --name conn
+type conn interface {
+	Read(context.Context) (websocket.MessageType, []byte, error)
+	Write(context.Context, websocket.MessageType, []byte) error
+	Close(websocket.StatusCode, string) error
+}
+
 type routine struct {
 	ctx        context.Context
-	conn       *websocket.Conn
+	conn       conn
 	datawriter io.WriteCloser
 	id         int
 }
